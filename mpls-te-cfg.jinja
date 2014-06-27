@@ -1,0 +1,38 @@
+{% if cfg_dict['vendor'] == "65" %}
+    ip explicit-path name {{cfg_dict['lsp_name']}}
+    {% for node in cfg_dict['nodes'] %}
+     next-address {{node}}     
+    {% endfor %}
+    int tunnel{{cfg_dict['tunnel_num']}}
+     description {{cfg_dict['lsp_name']}}
+     ip unnumbered Loopback0
+     load-interval 30
+     mpls ip
+     tunnel destination {{cfg_dict['nodes'][-1]}}
+     tunnel mode mpls traffic-eng
+     tunnel mpls traffic-eng path-option 1 explicit name {{cfg_dict['lsp_name']}}
+{% elif cfg_dict['vendor'] == "asr" %}
+    explicit-path name {{cfg_dict['lsp_name']}}
+    {% for node in cfg_dict['nodes'] %}
+     index {{loop.index }} next-address {{node}}
+    {% endfor %}
+    interface tunnel-te{{cfg_dict['tunnel_num']}}
+     description {{cfg_dict['lsp_name']}}
+     ipv4 unnumbered Loopback0
+     load-interval 30
+     destination {{cfg_dict['nodes'][-1]}}
+     path-option 1 explicit name {{cfg_dict['lsp_name']}}
+    mpls ldp
+     interface tunnel-te{{cfg_dict['tunnel_num']}}
+{% elif cfg_dict['vendor'] == "mx" %}
+    {% for node in cfg_dict['nodes'] %}
+    set protocols mpls path {{cfg_dict['lsp_name']}} {{node}}
+    {% endfor %}
+
+    set protocols mpls label-switched-path {{cfg_dict['lsp_name']}} to {{cfg_dict['nodes'][-1]}}
+    set protocols mpls label-switched-path {{cfg_dict['lsp_name']}} bandwidth 10m
+    set protocols mpls label-switched-path {{cfg_dict['lsp_name']}} adaptive
+    set protocols mpls label-switched-path {{cfg_dict['lsp_name']}} preference 10
+    set protocols mpls label-switched-path {{cfg_dict['lsp_name']}} primary {{cfg_dict['lsp_name']}}
+{% endif %}
+

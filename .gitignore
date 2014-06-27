@@ -1,0 +1,4 @@
+*.pyc
+*.list
+*.cfg-prod
+*.db
