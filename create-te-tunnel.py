@@ -1,7 +1,7 @@
 import jinja2
 import sys
-import sqlite3
 from string import join
+import socket
 
 
 
@@ -12,9 +12,6 @@ class CfgContext(object):
         #need to check jinja2 docs about something more usefull
         self.TEMPLATE_DIR = './'
         self.env = jinja2.Environment(loader=jinja2.FileSystemLoader(self.TEMPLATE_DIR))
-        self.DBNAME='./routers.db'
-        self.connection = sqlite3.connect(self.DBNAME)
-        self.cursor = self.connection.cursor()
 
     
     def cfg_from_cli(self,cfg_line):
@@ -27,10 +24,8 @@ class CfgContext(object):
         self.cfg_dict['nodes'] = list()
         node_id = 3
         while node_id < len(cfg_line):
-            self.cursor.execute("select r_ip from rdb where r_name = ?",
-                        (cfg_line[node_id],))
-            node_ip = self.cursor.fetchall()[0]
-            self.cfg_dict['nodes'].extend(node_ip)
+            node_ip = socket.gethostbyname(cfg_line[node_id])
+            self.cfg_dict['nodes'].extend((node_ip,))
             node_id += 1
 
     def render_template(self):
