@@ -2,6 +2,7 @@ import jinja2
 import sys
 from string import join
 import socket
+import sqlite3
 
 
 
@@ -18,13 +19,34 @@ class CfgContext(object):
         if len(cfg_line) < 4:
             print("arguments must be: <vendor> <descr/lsp name> <tunnel_num> <hosts>...")
             sys.exit(-1)
-        self.cfg_dict['vendor'] = cfg_line[0]
+        if len(cfg_line[0].split(':')) > 1:
+            vendor = cfg_line[0].split(':')[0]
+            dbname = cfg_line[0].split(':')[1]
+        else:
+            vendor = cfg_line[0]
+            dbname = None
+        self.cfg_dict['vendor'] = vendor
         self.cfg_dict['lsp_name'] = cfg_line[1]
         self.cfg_dict['tunnel_num'] = cfg_line[2]
         self.cfg_dict['nodes'] = list()
         node_id = 3
+        node_name_dict = dict()
+        if dbname != None:
+            '''
+            dbname must be rlist and it must be in format <hostname>:<ip_address>
+            '''
+            db = sqlite3.connect(dbname)
+            cur = db.cursor()
+            cur.execute("select * from rlist")
+            data = cur.fetchall()
+            db.close()
+            for line in data:
+                node_name_dict[line[0]] = line[1]
         while node_id < len(cfg_line):
-            node_ip = socket.gethostbyname(cfg_line[node_id])
+            if dbname != None:
+                node_ip = node_name_dict[cfg_line[node_id]]
+            else:
+                node_ip = socket.gethostbyname(cfg_line[node_id])
             self.cfg_dict['nodes'].extend((node_ip,))
             node_id += 1
 
