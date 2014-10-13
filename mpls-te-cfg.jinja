@@ -11,6 +11,21 @@
      tunnel destination {{cfg_dict['nodes'][-1]}}
      tunnel mode mpls traffic-eng
      tunnel mpls traffic-eng path-option 1 explicit name {{cfg_dict['lsp_name']}}
+{% elif cfg_dict['vendor'] == "h93" %}
+    explicit-path {{cfg_dict['lsp_name']}}
+    {% for node in cfg_dict['nodes'] %}
+    next hop {{node}} include loose
+    {% endfor %}
+    int Tunnel {{cfg_dict['tunnel_num']}}
+     description {{cfg_dict['lsp_name']}}
+     ip address unnumbered interface Loopback1
+     tunnel-protocol mpls te
+     destination {{cfg_dict['nodes'][-1]}}
+
+     mpls te tunnel-id {{cfg_dict['tunnel_num']}}
+     mpls te record-route
+     mpls te path explicit-path {{cfg_dict['lsp_name']}}
+     mpls te commit
 {% elif cfg_dict['vendor'] == "asr" %}
     explicit-path name {{cfg_dict['lsp_name']}}
     {% for node in cfg_dict['nodes'] %}

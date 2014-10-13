@@ -44,7 +44,10 @@ class CfgContext(object):
                 node_name_dict[line[0]] = line[1]
         while node_id < len(cfg_line):
             if dbname != None:
-                node_ip = node_name_dict[cfg_line[node_id]]
+                if cfg_line[node_id] in node_name_dict:
+                    node_ip = node_name_dict[cfg_line[node_id]]
+                else:
+                    node_ip = cfg_line[node_id]
             else:
                 node_ip = socket.gethostbyname(cfg_line[node_id])
             self.cfg_dict['nodes'].extend((node_ip,))
